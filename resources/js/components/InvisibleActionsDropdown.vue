@@ -36,7 +36,7 @@ export default {
   props: {
     actions: { type: Array, required: true },
     showArrow: { type: Boolean, required: false, default: false },
-    iconType: { type: String, required: false, default: "hero-more-horiz" },
+    iconType: { type: String, required: false, default: "ellipsis-horizontal" },
   },
 
   data() {

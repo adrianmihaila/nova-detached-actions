@@ -2,10 +2,17 @@
 
 A Laravel Nova tool to allow for placing actions in the Nova toolbar, detached from the checkbox selection mechanism.
 
+**Compatible with Laravel Nova 4 and Nova 5**
+
 :warning: Keep in mind, since the action is detached from the row selection checkboxes in the resource table, you will not have a collection of models to iterate over. Detached actions are intended to be independent of the selection in the table.
 :warning: Also, keep in mind, pivot actions are not supported and have not been tested.
 
 ![screenshot](https://i.imgur.com/S8GrNFI.png)
+
+## Requirements
+
+- PHP 8.1 or higher
+- Laravel Nova 4.x or 5.x
 
 ## Installation
 
@@ -237,19 +244,21 @@ return [
 
 ### Adding an icon
 
-You can use any of the 104 Heroicon icons by specifying the icon name in lowercase:
+You can use any of the Heroicon icons by specifying the icon name:
 
 ```php
 return [
-   (new ImportUsers)->icon('add')
+   (new ImportUsers)->icon('plus')
 ];
 ```
+
+**Note:** Nova 5 uses Heroicons v2, which has different icon names than Heroicons v1. When specifying icons, use the Heroicons v2 naming convention (e.g., `ellipsis-horizontal` instead of `dots-horizontal`, `plus` instead of `add`, etc.). See the [Heroicons v2 documentation](https://heroicons.com/) for available icons.
 
 You can also customize the display of that icon using `iconClasses`:
 
 ```php
 return [
-   (new ImportUsers)->icon('upload')->iconClasses('mr-3 -ml-2')
+   (new ImportUsers)->icon('arrow-up-tray')->iconClasses('mr-3 -ml-2')
 ];
 ```
 

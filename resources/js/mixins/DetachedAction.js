@@ -84,7 +84,7 @@ export default {
     invisibleActionsIcon() {
       return this.resourceInformation.hasOwnProperty('invisibleActionsIcon')
           ? this.resourceInformation.invisibleActionsIcon
-          : 'hero-more-horiz'
+          : 'ellipsis-horizontal'
     },
 
     /**

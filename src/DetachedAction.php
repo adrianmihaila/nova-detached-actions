@@ -232,7 +232,7 @@ abstract class DetachedAction extends Action
      *
      * @return bool
      */
-    public function shownOnIndex()
+    public function shownOnIndex(): bool
     {
         return $this->showOnIndexToolbar;
     }
@@ -242,7 +242,7 @@ abstract class DetachedAction extends Action
      *
      * @return bool
      */
-    public function shownOnDetail()
+    public function shownOnDetail(): bool
     {
         return $this->showOnDetailToolbar;
     }
