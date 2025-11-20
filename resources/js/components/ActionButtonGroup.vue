@@ -43,57 +43,158 @@
     />
   </div>
 </template>
+
 <script>
-import DetachedAction from "../mixins/DetachedAction";
+import { Errors } from 'form-backend-validation'
+import InteractsWithResourceInformation from '@/mixins/InteractsWithResourceInformation'
 
 export default {
-  mixins: [DetachedAction],
+  mixins: [InteractsWithResourceInformation],
 
   props: ['shouldShowActions', 'resourceName', 'resourceId', 'actions', 'endpoint', 'actionQueryString', 'selectedResources'],
 
+  data: () => ({
+    visibleActionsDefaultLimit: 3,
+    actionsList: [],
+    confirmActionModalOpened: false,
+    working: false,
+    errors: new Errors(),
+    selectedActionKey: '',
+    showActionResponseModal: false,
+    actionResponseData: {},
+  }),
+
   watch: {
-    actions(newActions, oldActions) {
+    actions(newActions) {
       this.actionsList = newActions.filter((action) => action.hasOwnProperty('detachedAction'));
     },
   },
 
   computed: {
-    currentSearch() {
-      return this.actionQueryString.currentSearch
+    detachedActions() {
+      return this.actionsList.filter(action => action.detachedAction || false)
     },
 
-    encodedFilters() {
-      return this.actionQueryString.encodedFilters
+    visibleActionsLimit() {
+      return this.resourceInformation?.visibleActionsLimit ?? this.visibleActionsDefaultLimit
     },
 
-    currentTrashed() {
-      return this.actionQueryString.currentTrashed
+    visibleActions() {
+      return this.visibleActionsLimit == 0 ? [] : this.detachedActions.slice(0, this.visibleActionsLimit)
     },
 
-    viaResource() {
-      return this.actionQueryString.viaResource
+    invisibleActions() {
+      return this.detachedActions.slice(this.visibleActionsLimit)
     },
 
-    viaResourceId() {
-      return this.actionQueryString.viaResourceId
+    shouldShowInvisibleActions() {
+      return this.detachedActions.length > this.visibleActionsLimit
     },
 
-    viaRelationship() {
-      return this.actionQueryString.viaRelationship
+    showInvisibleActionsArrow() {
+      return this.resourceInformation?.showInvisibleActionsArrow ?? false
     },
 
-    actionsForSelect() {
-      return [
-        ...this.visibleActions.map(a => ({
-          value: a.uriKey,
-          label: a.name,
-        })),
-      ]
+    invisibleActionsIcon() {
+      return this.resourceInformation?.invisibleActionsIcon ?? 'ellipsis-horizontal'
+    },
+
+    selectedAction() {
+      if (this.selectedActionKey) {
+        return this.actionsList.find(a => a.uriKey === this.selectedActionKey)
+      }
+      return {}
+    },
+  },
+
+  methods: {
+    handleClick(action) {
+      if (action.authorizedToRun !== false) {
+        this.selectedActionKey = action.uriKey
+        this.determineActionStrategy()
+      }
+    },
+
+    determineActionStrategy() {
+      if (this.selectedAction.withoutConfirmation) {
+        this.executeAction()
+      } else {
+        this.openConfirmationModal()
+      }
+    },
+
+    openConfirmationModal() {
+      this.errors = new Errors()
+      this.confirmActionModalOpened = true
+    },
+
+    closeConfirmationModal() {
+      this.confirmActionModalOpened = false
+    },
+
+    closeActionResponseModal() {
+      this.showActionResponseModal = false
+      this.$emit('actionExecuted')
+    },
+
+    executeAction() {
+      this.working = true
+      Nova.$progress.start()
+
+      const actionEndpoint = this.endpoint || `/nova-api/${this.resourceName}/action`
+      const formData = new FormData()
+
+      if (this.selectedResources === 'all') {
+        formData.append('resources', 'all')
+      } else {
+        this.selectedResources.forEach(resource => {
+          const resourceId = typeof resource === 'object' ? resource.id?.value : resource
+          formData.append('resources[]', resourceId)
+        })
+      }
+
+      this.selectedAction.fields?.forEach(field => field.fill(formData))
+
+      Nova.request({
+        method: 'post',
+        url: actionEndpoint,
+        params: { action: this.selectedActionKey, ...this.actionQueryString },
+        data: formData,
+      })
+        .then(response => {
+          this.closeConfirmationModal()
+          this.handleActionResponse(response.data)
+        })
+        .catch(error => {
+          if (error.response?.status >= 400 && error.response?.status < 500) {
+            this.errors = new Errors(error.response.data.errors || {})
+            Nova.error(Nova.__('There was a problem executing the action.'))
+          }
+        })
+        .finally(() => {
+          this.working = false
+          Nova.$progress.done()
+        })
+    },
+
+    handleActionResponse(data) {
+      if (data.message) {
+        Nova.success(data.message)
+      }
+
+      if (data.modal) {
+        this.actionResponseData = data.modal
+        this.showActionResponseModal = true
+      } else {
+        this.$emit('actionExecuted')
+      }
+
+      Nova.$emit('action-executed')
     },
   },
 
   created() {
-    this.actionsList = this.actions;
+    this.actionsList = this.actions
   }
-};
+}
 </script>

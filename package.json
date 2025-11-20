@@ -20,6 +20,9 @@
     },
     "dependencies": {
         "@vue/babel-plugin-jsx": "^1.1.1",
-        "vue": "^3.3.0"
+        "form-backend-validation": "^2.4.0",
+        "laravel-nova-ui": "^0.4.12",
+        "vue": "^3.3.0",
+        "vuex": "^4.1.0"
     }
 }
