@@ -37,11 +37,17 @@
         :resource="resource"
         :resource-id="resourceId"
         :resource-name="resourceName"
-        class="mb-8"
+        :class="{
+          'mb-8': panel.fields.length > 0,
+        }"
       >
         <div v-if="panel.showToolbar" class="md:flex items-center mb-3">
           <div class="flex flex-auto truncate items-center">
-            <Heading :level="1" v-text="panel.name" />
+            <Heading
+              :level="1"
+              v-text="panel.name"
+              :dusk="`${panel.name}-detail-heading`"
+            />
             <Badge
               v-if="resource.softDeleted"
               :label="__('Soft Deleted')"
@@ -63,7 +69,7 @@
 
             <!-- Actions Menu -->
             <DetailActionDropdown
-              v-if="resource"
+              v-if="shouldShowActionDropdown"
               :resource="resource"
               :actions="computedActions"
               :via-resource="viaResource"
@@ -77,6 +83,22 @@
             />
 
             <Link
+              v-if="showViewLink"
+              v-tooltip="{
+                placement: 'bottom',
+                distance: 10,
+                skidding: 0,
+                content: __('View'),
+              }"
+              :href="$url(`/resources/${resourceName}/${resourceId}`)"
+              class="rounded hover:bg-gray-200 dark:hover:bg-gray-800 focus:outline-none focus:ring"
+              dusk="view-resource-button"
+              tabindex="1"
+            >
+              <Button as="span" variant="ghost" icon="eye" />
+            </Link>
+
+            <Link
               v-if="resource.authorizedToUpdate"
               v-tooltip="{
                 placement: 'bottom',
@@ -86,13 +108,10 @@
               }"
               :href="$url(`/resources/${resourceName}/${resourceId}/edit`)"
               class="rounded hover:bg-gray-200 dark:hover:bg-gray-800 focus:outline-none focus:ring"
-              data-testid="edit-resource"
               dusk="edit-resource-button"
               tabindex="1"
             >
-              <BasicButton component="span">
-                <Icon type="pencil-alt" />
-              </BasicButton>
+              <Button as="span" variant="ghost" icon="pencil-square" />
             </Link>
           </div>
         </div>
@@ -123,6 +142,23 @@ export default {
     },
     computedSelectedResources() {
       return [this.resource.id.value];
+    },
+    shouldShowActionDropdown() {
+      return (
+          this.resource &&
+          (this.actions.length > 0 || this.canModifyResource) &&
+          this.showActionDropdown
+      )
+    },
+    actionsEndpoint() {
+      return `/nova-api/${this.resourceName}/actions`
+    },
+    actionQueryString() {
+      return {
+        viaResource: this.viaResource,
+        viaResourceId: this.viaResourceId,
+        viaRelationship: this.viaRelationship,
+      }
     },
   }
 };

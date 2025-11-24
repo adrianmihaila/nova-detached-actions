@@ -3,7 +3,7 @@
     class="flex flex-col md:flex-row md:items-center"
     :class="{
       'py-3 border-b border-gray-200 dark:border-gray-700':
-        shouldShowCheckBoxes ||
+        shouldShowCheckboxes ||
         shouldShowDeleteMenu ||
         softDeletes ||
         !viaResource ||
@@ -14,10 +14,12 @@
     <div class="flex items-center flex-1">
       <div class="md:ml-3">
         <SelectAllDropdown
-          v-if="shouldShowCheckBoxes"
+          v-if="shouldShowCheckboxes"
           :all-matching-resource-count="allMatchingResourceCount"
+          :current-page-count="currentPageCount"
           @toggle-select-all="toggleSelectAll"
           @toggle-select-all-matching="toggleSelectAllMatching"
+          @deselect="$emit('deselect')"
         />
       </div>
 
@@ -59,28 +61,27 @@
 
         <!-- Lenses -->
         <LensSelector
-          v-if="lenses"
+          v-if="lenses?.length > 0"
           :resource-name="resourceName"
           :lenses="lenses"
         />
 
         <!-- Filters -->
         <FilterMenu
-          v-if="filters.length > 0 || softDeletes || !viaResource"
+          v-if="filters?.length > 0 || softDeletes || !viaResource"
           :active-filter-count="activeFilterCount"
           :filters-are-applied="filtersAreApplied"
           :filters="filters"
+          :per-page-options="filterPerPageOptions"
+          :per-page="perPage"
           :resource-name="resourceName"
           :soft-deletes="softDeletes"
-          :via-resource="viaResource"
-          :via-has-one="viaHasOne"
           :trashed="trashed"
-          :per-page="perPage"
-          :per-page-options="filterPerPageOptions"
+          :via-resource="viaResource"
           @clear-selected-filters="clearSelectedFilters(lens || null)"
           @filter-changed="filterChanged"
-          @trashed-changed="trashedChanged"
           @per-page-changed="updatePerPageChanged"
+          @trashed-changed="trashedChanged"
         />
 
         <DeleteMenu
@@ -88,6 +89,7 @@
           v-if="shouldShowDeleteMenu"
           dusk="delete-menu"
           :soft-deletes="softDeletes"
+          :resource-name="resourceName"
           :resources="resources"
           :selected-resources="selectedResources"
           :via-many-to-many="viaManyToMany"
@@ -137,27 +139,15 @@ export default {
   extends: ResourceTableToolbar,
 
   computed: {
-    /**
-     * Return the filters from state
-     */
     filters() {
       return this.$store.getters[`${this.resourceName}/filters`] || []
     },
-
-    /**
-     * Determine via state whether filters are applied
-     */
     filtersAreApplied() {
       return this.$store.getters[`${this.resourceName}/filtersAreApplied`]
     },
-
-    /**
-     * Return the number of active filters
-     */
     activeFilterCount() {
       return this.$store.getters[`${this.resourceName}/activeFilterCount`]
     },
-
     computedAvailableActions() {
       return this.availableActions.length
           ? this.availableActions.filter(action => !action.hasOwnProperty('detachedAction'))
@@ -180,7 +170,10 @@ export default {
     },
     computedShouldShowActionSelector() {
       return this.selectedResources.length > 0 || this.computedStandaloneActions.length > 0
-    }
+    },
+    filterPerPageOptions() {
+      return this.perPageOptions
+    },
   }
 };
 </script>
