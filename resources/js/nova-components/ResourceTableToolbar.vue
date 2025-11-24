@@ -66,6 +66,10 @@
 
         <!-- Filters -->
         <FilterMenu
+          v-if="filters.length > 0 || softDeletes || !viaResource"
+          :active-filter-count="activeFilterCount"
+          :filters-are-applied="filtersAreApplied"
+          :filters="filters"
           :resource-name="resourceName"
           :soft-deletes="softDeletes"
           :via-resource="viaResource"
@@ -133,6 +137,27 @@ export default {
   extends: ResourceTableToolbar,
 
   computed: {
+    /**
+     * Return the filters from state
+     */
+    filters() {
+      return this.$store.getters[`${this.resourceName}/filters`] || []
+    },
+
+    /**
+     * Determine via state whether filters are applied
+     */
+    filtersAreApplied() {
+      return this.$store.getters[`${this.resourceName}/filtersAreApplied`]
+    },
+
+    /**
+     * Return the number of active filters
+     */
+    activeFilterCount() {
+      return this.$store.getters[`${this.resourceName}/activeFilterCount`]
+    },
+
     computedAvailableActions() {
       return this.availableActions.length
           ? this.availableActions.filter(action => !action.hasOwnProperty('detachedAction'))
