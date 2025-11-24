@@ -45,7 +45,7 @@
 </template>
 
 <script>
-import { Errors } from 'form-backend-validation'
+import { Errors } from 'laravel-nova'
 import InteractsWithResourceInformation from '@/mixins/InteractsWithResourceInformation'
 
 export default {
