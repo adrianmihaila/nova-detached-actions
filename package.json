@@ -18,13 +18,13 @@
         "sass": "^1.69.0",
         "sass-loader": "^13.3.0",
         "uid": "^2.0.2",
-        "vue-loader": "^17.0.0",
-        "vuex": "^4.1.0"
+        "vue-loader": "^17.0.0"
     },
     "dependencies": {
         "@vue/babel-plugin-jsx": "^1.1.1",
         "laravel-nova": "^1.12.3",
         "laravel-nova-ui": "^0.4.12",
-        "vue": "^3.3.0"
+        "vue": "^3.3.0",
+        "vuex": "^4.1.0"
     }
 }
